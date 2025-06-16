@@ -44,12 +44,22 @@ private:
     cv::Mat output_image;
     cv::drawKeypoints(cv_ptr->image, keypoints, output_image);
 
-    // Publish the image with keypoints drawn
+    // Draw vertical lines to show left, center, right zones
+    int width = output_image.cols;
+    cv::line(output_image, cv::Point(width / 3, 0), cv::Point(width / 3, output_image.rows), cv::Scalar(255, 0, 0), 2);
+    cv::line(output_image, cv::Point(2 * width / 3, 0), cv::Point(2 * width / 3, output_image.rows), cv::Scalar(255, 0, 0), 2);
+
+    // Publish the image with keypoints and grid
     sensor_msgs::msg::Image output_msg;
     cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", output_image).toImageMsg(output_msg);
     image_pub_->publish(output_msg);
 
-    if (!prev_keypoints_.empty() && !prev_descriptors_.empty()) {
+    if (!prev_keypoints_.empty() && 
+        !prev_descriptors_.empty() && 
+        !descriptors.empty() && 
+        prev_descriptors_.type() == descriptors.type() && 
+        prev_descriptors_.cols == descriptors.cols) {
+
       std::vector<cv::DMatch> matches;
       bf_.match(prev_descriptors_, descriptors, matches);
 
@@ -62,7 +72,6 @@ private:
 
         float growth = kp_curr.size / std::max(kp_prev.size, 1.0f);
         float x = kp_curr.pt.x;
-        int width = gray.cols;
 
         if (x < width / 3) {
           left_growth += growth;
@@ -74,6 +83,9 @@ private:
           right_growth += growth;
           right_count++;
         }
+
+        // Draw keypoint center position (for debugging across different cams)
+        cv::circle(output_image, kp_curr.pt, 2, cv::Scalar(0, 255, 255), -1);
       }
 
       float avg_left = left_count > 0 ? left_growth / left_count : 0.0f;
@@ -81,11 +93,13 @@ private:
       float avg_right = right_count > 0 ? right_growth / right_count : 0.0f;
 
       std_msgs::msg::String direction_msg;
+      float total_expansion = avg_left + avg_center + avg_right;
 
-      if (avg_center > 1.2) {
-        if (avg_left < avg_right && avg_left < 1.2) {
+      // Threshold check for movement — avoid small/no growth scenes
+      if (total_expansion > 3.5f) {
+        if (avg_left < avg_center && avg_left < avg_right) {
           direction_msg.data = "left";
-        } else if (avg_right < 1.2) {
+        } else if (avg_right < avg_left && avg_right < avg_center) {
           direction_msg.data = "right";
         } else {
           direction_msg.data = "back";
