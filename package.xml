@@ -2,7 +2,7 @@
 <package format="3">
   <name>Object_detection</name>
   <version>0.0.1</version>
-  <description>SURF feature detector node</description>
+  <description>ORB feature detector node</description>
   <maintainer email="you@example.com">Your Name</maintainer>
   <license>MIT</license>
 
