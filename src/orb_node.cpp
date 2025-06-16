@@ -14,6 +14,7 @@ public:
       std::bind(&ORBTrackerNode::image_callback, this, std::placeholders::_1));
 
     direction_pub_ = this->create_publisher<std_msgs::msg::String>("/avoid_direction", 10);
+    image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/orb_keypoints_image", 10);
 
     orb_ = cv::ORB::create();
     bf_ = cv::BFMatcher(cv::NORM_HAMMING);
@@ -38,6 +39,15 @@ private:
     std::vector<cv::KeyPoint> keypoints;
     cv::Mat descriptors;
     orb_->detectAndCompute(gray, cv::noArray(), keypoints, descriptors);
+
+    // Draw keypoints for visualization
+    cv::Mat output_image;
+    cv::drawKeypoints(cv_ptr->image, keypoints, output_image);
+
+    // Publish the image with keypoints drawn
+    sensor_msgs::msg::Image output_msg;
+    cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", output_image).toImageMsg(output_msg);
+    image_pub_->publish(output_msg);
 
     if (!prev_keypoints_.empty() && !prev_descriptors_.empty()) {
       std::vector<cv::DMatch> matches;
@@ -93,6 +103,7 @@ private:
 
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr direction_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
   cv::Ptr<cv::ORB> orb_;
   cv::BFMatcher bf_;
 
