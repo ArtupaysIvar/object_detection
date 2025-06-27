@@ -1,11 +1,12 @@
-cmake_minimum_required(VERSION 3.5)
-project(Object_detection)
+cmake_minimum_required(VERSION 3.10)
+project(object_detection)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(std_msgs REQUIRED)
 
 include_directories(
   include
@@ -13,7 +14,7 @@ include_directories(
 )
 
 add_executable(orb_node src/orb_node.cpp)
-ament_target_dependencies(orb_node rclcpp sensor_msgs cv_bridge)
+ament_target_dependencies(orb_node rclcpp cv_bridge std_msgs sensor_msgs cv_bridge OpenCV)
 target_link_libraries(orb_node ${OpenCV_LIBRARIES})
 
 install(TARGETS
