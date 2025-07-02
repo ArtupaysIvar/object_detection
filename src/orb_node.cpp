@@ -445,9 +445,11 @@ private:
     void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg)
     {
         // Convert image
+        
         cv::Mat curr_image;
         try {
-            curr_image = cv_bridge::toCvShare(msg, "bgr8")->image;
+            // curr_image = cv_bridge::toCvShare(msg, "bgr8")->image;
+            curr_image = cv_bridge::toCvShare(msg, "mono8")->image; 
         } catch (cv_bridge::Exception &e) {
             RCLCPP_ERROR(this->get_logger(), "cv_bridge error: %s", e.what());
             return;
@@ -455,7 +457,8 @@ private:
 
         // Grayscale conversion
         cv::Mat gray;
-        cv::cvtColor(curr_image, gray, cv::COLOR_BGR2GRAY);
+        // cv::cvtColor(curr_image, gray, cv::COLOR_BGR2GRAY);
+        gray = curr_image.clone();
         cv::GaussianBlur(gray, gray, cv::Size(5, 5), 1.0);
 
         // Calculate fixed center ROI
