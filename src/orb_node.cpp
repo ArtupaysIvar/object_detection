@@ -33,7 +33,7 @@ public:
 
         // Use ORB for better performance and reliability
         detector_ = cv::ORB::create(600);
-        matcher_ = cv::BFMatcher::create(cv::NORM_HAMMING, false);
+        matcher_ = cv::BFMatcher::create(cv::NORM_HAMMING, false); //CEK
 
         // Initialize parameters (tunable)
         kp_ratio_threshold_ = 1.25;  // UBAH
@@ -70,7 +70,7 @@ public:
         min_confidence_threshold_ = 0.75;     // UBAH
         excellent_confidence_threshold_ = 0.85; // High confidence bypass
 
-        RCLCPP_INFO(this->get_logger(), "Enhanced ROI obstacle detector with improved logic initialized.");
+        RCLCPP_INFO(this->get_logger(), "Enhanced ROI obstacle detector with improved logic initialized."); 
     }
 
 private:
@@ -407,8 +407,7 @@ private:
         int img_height = image.rows;
         
         int margin_x = static_cast<int>(img_width * roi_margin_x_);
-        int margin_y = static_cast<int>(img_height * roi_margin_y_);
-        
+        int margin_y = static_cast<int>(img_height * roi_margin_y_);       
         int roi_x = margin_x;
         int roi_y = margin_y;
         int roi_width = img_width - 2 * margin_x;
@@ -716,8 +715,8 @@ private:
 
 int main(int argc, char **argv)
 {
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ROIObstacleDetectorNode>());
-    rclcpp::shutdown();
+    rclcpp::init(argc, argv); // Prepare ROS 2 system
+    rclcpp::spin(std::make_shared<ROIObstacleDetectorNode>()); // Instantiate your custom node and Spin the node
+    rclcpp::shutdown(); 
     return 0;
 }
